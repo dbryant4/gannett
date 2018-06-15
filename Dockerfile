@@ -4,8 +4,8 @@ ADD app.py requirements.txt /app/
 RUN yum install -y epel-release && \
     yum install -y python2-pip && \
     pip install --no-cache-dir -r /app/requirements.txt && \
-    yum remove -y epel-release && \
+    yum remove -y epel-release python2-pip && \
     yum clean all && \
     rm -rf /var/cache/yum
 
-CMD PYTHONPATH=/app FLASK_APP=app.py flask run --host=0.0.0.0 --port 8080
+CMD PYTHONPATH=/app gunicorn --access-logfile - -w 4 -b 0.0.0.0:8080 app:app
