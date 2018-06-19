@@ -1,85 +1,67 @@
-# Hello World App
+# Gannett Take Home Challenge
 
-This is a basic Hello World web application.
+## Overview
 
-# Requirements
+This is the take home challenge for the Gannett interview process.
 
-- [virtualenv](https://virtualenv.pypa.io/en/stable/)
+See the [README.md](app/README.md) file in the `app/` directory for details of the application that is being packaged up and tested.
+
+Below are the steps to create a local instance of [Concourse CI]
+
+## Requirements
+
 - [Docker](https://www.docker.com/) (Docker for Mac or Docker-CE/EE)
-- [dgoss](https://github.com/aelsabbahy/goss/tree/master/extras/dgoss) - for container tests
+- [Docker Compose](https://docs.docker.com/compose/install/)
+- [Docker Hub Repository](https://hub.docker.com/)
 
-# Getting Started
+## Getting Started
 
-1. Run application acceptance tests.
-
-  ```
-  docker run -v ${PWD}:/app -e PYTHONPATH=/app python:2.7  bash -c "pip install -r /app/requirements.txt -r /app/tests/requirements.txt && pytest /app/tests"
-  ```
-
-2. Deactivate and delete virtualenv
+1. Start the Concourse CI instance
 
   ```
-  deactivate
-  rm -rf venv
+  docker-compose up -d
   ```
 
-3. Next, build a container image.
+2. Open <http://127.0.0.1:8080/> in your browser, download `fly` for your OS, and place in your $PATH.
+
+3. Login to the Concourse CI instance:
+
+  `fly -t local login -c http://127.0.0.1:8080`
+
+4. Create the `credentials.yml` file:
 
   ```
-  docker build -t hello_world_app:latest .
+  ---
+  DOCKER_REPO: dbryant4/gannett_hello_world_app
+  DOCKER_USER: dbryant4
+  DOCKER_MAIL: my_email_Address
+  DOCKER_PASS: my_password
   ```
 
-4. Then, test the container image using dgoss:
+5. Create the concourse pipeline
 
   ```
-  dgoss run hello_world_app:latest
+  fly -t local set-pipeline -c concourse.yml -p helloworld -l credentials.yml
   ```
 
-5. Start the application:
+6. Un-pause the pipeline
 
   ```
-  docker run --rm -d -p 8080:8080 --name my_app hello_world_app:latest
+  fly -t local unpause-pipeline -p helloworld
   ```
 
-6. Point your web browser to <http://127.0.0.1:8080/>. "hello world" should be returned.
-
-7. To stop the container:
+7. Trigger a build:
 
   ```
-  docker kill my_app
+  fly -t local trigger-job  --job helloworld/hello-world
   ```
 
-# Endpoints
+8. Visit the build in your browser
 
-The endpoints below support the query parameters below. They can be used
+  <http://127.0.0.1:8080/teams/main/pipelines/helloworld/jobs/hello-world/builds/1>
 
-- `uppercase` - Capitalizes the return string.
-- `reversed` -
+9. Once you have finished building, destroy the Concourse CI instance so as to not waste space.
 
-## `/`
-
-- Method: GET
-
-  Return Content: hello world
-
-  Success Status Code: 200
-
-## `/hello`
-
-- Method: GET
-
-  Return Content: hello
-
-  Success Status Code: 200
-
-## `/world`
-
-- Method: GET
-
-  Return Content: world
-
-  Success Status Code: 200
-
-# Tests
-
-To run tests,
+  ```
+  docker-compose down
+  ```

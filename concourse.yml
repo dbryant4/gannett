@@ -1,0 +1,29 @@
+---
+resources:
+- name: project-src
+  type: git
+  source:
+    uri: https://github.com/dbryant4/gannett.git
+    branch: part3
+
+- name: docker-image
+  type: docker-image
+  source:
+    repository: {{DOCKER_REPO}}
+    email: {{DOCKER_MAIL}}
+    username: {{DOCKER_USER}}
+    password: {{DOCKER_PASS}}
+
+jobs:
+- name: hello-world
+  public: true
+  plan:
+  - get: project-src
+    trigger: true
+  - task: acceptance tests
+    file: project-src/concourse/tasks/acceptance-tests.yml
+  - put: docker-image
+    params:
+      build: project-src/app
+  - task: container image tests
+    file: project-src/concourse/tasks/container-image-tests.yml

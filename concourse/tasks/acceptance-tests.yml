@@ -1,0 +1,16 @@
+---
+platform: linux
+
+image_resource:
+  type: docker-image
+  source:
+    repository: python
+    tag: 2.7
+
+inputs:
+- name: project-src
+
+run:
+  path: bash
+  args:
+  - project-src/concourse/tasks/run_acceptance_tests.sh
